@@ -181,8 +181,8 @@ const MainLayout = () => {
 
         <Content
           style={{
-            margin: isMobile ? '12px' : '16px',
-            padding: isMobile ? '12px' : '16px',
+            margin: isMobile ? '3px' : '8px',
+            padding: isMobile ? '3px' : '8px',
             background: '#f0f2f5',
             minHeight: 'calc(100vh - 96px)',
             overflow: 'auto',
