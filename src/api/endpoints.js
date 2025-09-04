@@ -24,8 +24,8 @@ export const UsersAPI = {
 }
 
 export const CustomersAPI = {
-  list: (params = {}) => api.get('/customers', { params }).then((r) => r.data),
-  get: (id) => api.get(`/customers/${id}`).then((r) => r.data),
-  create: (payload) => api.post('/customers', payload).then((r) => r.data),
-  update: (id, payload) => api.patch(`/customers/${id}`, payload).then((r) => r.data),
+  list: (params = {}) => api.get('/Customer_Master_View/', { params }).then((r) => r.data),
+  get: (id) => api.get(`/Customer_Master_View/${id}`).then((r) => r.data),
+  create: (payload) => api.post('/Customer_Master_View/', payload).then((r) => r.data),
+  update: (id, payload) => api.patch(`/Customer_Master_View//${id}`, payload).then((r) => r.data),
 }

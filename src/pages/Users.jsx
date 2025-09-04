@@ -110,7 +110,7 @@ export default function Users() {
 
       <Card size="small">
         {loading ? (
-          <div className="py-4 text-center"><Spin tip="Loading users..." /></div>
+          <div className="py-4 text-center"><Spin tip="Loading users..." fullscreen /></div>
         ) : (
           <Table
             columns={columns}
