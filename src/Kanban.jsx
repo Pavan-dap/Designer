@@ -16,7 +16,7 @@ export default function Kanban() {
   const [designerFilter, setDesignerFilter] = useState('')
 
   const activeDesigner = useMemo(() => {
-    if (user?.role === 'Designer') return user.username
+    if (user?.role === 'Designer') return user.user_id
     return designerFilter || ''
   }, [user, designerFilter])
 
@@ -98,7 +98,7 @@ export default function Kanban() {
               className="designer-filter"
               allowClear
               placeholder="Filter by Designer"
-              options={designers.map((d) => ({ label: d.name, value: d.username }))}
+              options={designers.map((d) => ({ label: d.name, value: d.user_id }))}
               onChange={(v) => setDesignerFilter(v || '')}
               value={designerFilter || undefined}
             />
