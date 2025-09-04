@@ -25,9 +25,11 @@ export default function Login() {
       <Card className="auth-card shadow">
         <Title level={3} className="text-center mb-4">Login</Title>
         <Form layout="vertical" onFinish={onFinish}>
-          <Form.Item name="username" rules={[{ required: true, message: 'Please enter your username!' }]}>\n            <Input placeholder="Username" />
+          <Form.Item name="username" rules={[{ required: true, message: 'Please enter your username!' }]}>
+            <Input placeholder="Username" />
           </Form.Item>
-          <Form.Item name="password" rules={[{ required: true, message: 'Please enter your password!' }]}>\n            <Input.Password placeholder="Password" />
+          <Form.Item name="password" rules={[{ required: true, message: 'Please enter your password!' }]}>
+            <Input.Password placeholder="Password" />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" block className="mt-3">
