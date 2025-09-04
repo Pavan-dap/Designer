@@ -15,3 +15,7 @@
 
 .tailor-select { width: 100%; }
 .designer-filter { min-width: 220px; }
+
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.subtle-text { font-size: 12px; color: #999; }
+.masked-password { user-select: none; cursor: pointer; }
