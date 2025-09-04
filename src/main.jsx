@@ -6,9 +6,6 @@ import 'antd/dist/reset.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.css'
 import { AuthProvider } from './context/AuthContext.jsx'
-import { setupMock } from './api/mock.js'
-
-setupMock()
 
 const container = document.getElementById('root')
 const root = createRoot(container)
