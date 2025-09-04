@@ -18,6 +18,6 @@ export const ItemsAPI = {
 }
 
 export const UsersAPI = {
-  list: () => api.get('/users').then((r) => r.data),
-  create: (payload) => api.post('/users', payload).then((r) => r.data),
+  list: () => api.get('/Users_View/').then((r) => r.data),
+  create: (payload) => api.post('/Users_View/', payload).then((r) => r.data),
 }
