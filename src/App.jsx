@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard.jsx'
 import Orders from './pages/Orders.jsx'
 import OrderDetails from './pages/OrderDetails.jsx'
 import Reports from './pages/Reports.jsx'
+import Users from './pages/Users.jsx'
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/kanban" element={<Kanban />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/orders/:id" element={<OrderDetails />} />
+        <Route path="/users" element={<Users />} />
         <Route path="/reports" element={<Reports />} />
       </Route>
     </Routes>
