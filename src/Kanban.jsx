@@ -125,7 +125,10 @@ export default function Kanban() {
         <div className="row g-3">
           {STATUSES.map((status) => (
             <div className="col-xl-3 col-lg-3 col-md-6" key={status}>
-              <Card title={status} bordered className="h-100">
+              <Card
+                title={status}
+                variant='outlined'
+                className="h-100">
                 <Droppable droppableId={status}>
                   {(provided) => (
                     <div {...provided.droppableProps} ref={provided.innerRef} className="kanban-column">

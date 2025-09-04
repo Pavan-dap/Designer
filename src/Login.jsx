@@ -12,7 +12,7 @@ export default function Login() {
 
   const onFinish = async (values) => {
     try {
-      const { data } = await api.post('/auth/login', {
+      const { data } = await api.post('/login_view/', {
         user_id: values.user_id,
         password: values.password,
       })
@@ -38,10 +38,10 @@ export default function Login() {
       <Card className="auth-card shadow">
         <Title level={3} className="text-center mb-4">Login</Title>
         <Form layout="vertical" onFinish={onFinish}>
-          <Form.Item name="user_id" rules={[{ required: true, message: 'Please enter your user id!' }]}> 
+          <Form.Item name="user_id" rules={[{ required: true, message: 'Please enter your user id!' }]}>
             <Input placeholder="user_id" />
           </Form.Item>
-          <Form.Item name="password" rules={[{ required: true, message: 'Please enter your password!' }]}> 
+          <Form.Item name="password" rules={[{ required: true, message: 'Please enter your password!' }]}>
             <Input.Password placeholder="Password" />
           </Form.Item>
           <Form.Item>
