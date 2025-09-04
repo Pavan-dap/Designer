@@ -16,3 +16,8 @@ export const ItemsAPI = {
   updateStatus: (id, status) => api.patch(`/items/${id}`, { status }).then((r) => r.data),
   assignTailor: (id, tailor) => api.patch(`/items/${id}`, { tailor }).then((r) => r.data),
 }
+
+export const UsersAPI = {
+  list: () => api.get('/users').then((r) => r.data),
+  create: (payload) => api.post('/users', payload).then((r) => r.data),
+}
