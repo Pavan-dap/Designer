@@ -9,6 +9,8 @@ import Orders from './pages/Orders.jsx'
 import OrderDetails from './pages/OrderDetails.jsx'
 import Reports from './pages/Reports.jsx'
 import Users from './pages/Users.jsx'
+import Customers from './pages/Customers.jsx'
+import CustomerDetails from './pages/CustomerDetails.jsx'
 
 export default function App() {
   return (
@@ -26,6 +28,8 @@ export default function App() {
         <Route path="/kanban" element={<Kanban />} />
         <Route path="/orders" element={<Orders />} />
         <Route path="/orders/:id" element={<OrderDetails />} />
+        <Route path="/customers" element={<Customers />} />
+        <Route path="/customers/:id" element={<CustomerDetails />} />
         <Route path="/users" element={<Users />} />
         <Route path="/reports" element={<Reports />} />
       </Route>
