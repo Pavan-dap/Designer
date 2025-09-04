@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useMemo, useState, useEffect } from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
 
 const AuthContext = createContext(null)
 
@@ -38,8 +39,6 @@ export function useAuth() {
   if (!ctx) throw new Error('useAuth must be used within AuthProvider')
   return ctx
 }
-
-import { Navigate, useLocation } from 'react-router-dom'
 
 export function ProtectedRoute({ children }) {
   const { user } = useAuth()
