@@ -9,6 +9,7 @@ export const DesignersAPI = {
 export const OrdersAPI = {
   list: (params = {}) => api.get('/orders', { params }).then((r) => r.data),
   get: (id) => api.get(`/orders/${id}`).then((r) => r.data),
+  create: (customerId, payload) => api.post(`/customers/${customerId}/orders`, payload).then((r) => r.data),
   assignDesigner: (id, assignedDesigner) => api.patch(`/orders/${id}`, { assignedDesigner }).then((r) => r.data),
 }
 
@@ -20,4 +21,11 @@ export const ItemsAPI = {
 export const UsersAPI = {
   list: () => api.get('/Users_View/').then((r) => r.data),
   create: (payload) => api.post('/Users_View/', payload).then((r) => r.data),
+}
+
+export const CustomersAPI = {
+  list: (params = {}) => api.get('/customers', { params }).then((r) => r.data),
+  get: (id) => api.get(`/customers/${id}`).then((r) => r.data),
+  create: (payload) => api.post('/customers', payload).then((r) => r.data),
+  update: (id, payload) => api.patch(`/customers/${id}`, payload).then((r) => r.data),
 }
