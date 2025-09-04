@@ -4,11 +4,18 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import 'antd/dist/reset.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
+import './styles.css'
+import { AuthProvider } from './context/AuthContext.jsx'
+import { setupMock } from './api/mock.js'
+
+setupMock()
 
 const container = document.getElementById('root')
 const root = createRoot(container)
 root.render(
   <BrowserRouter>
-    <App />
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   </BrowserRouter>
 )
