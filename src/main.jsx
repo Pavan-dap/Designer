@@ -1,18 +1,15 @@
 import React from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import App from './App.jsx'
+import ReactDOM from 'react-dom/client'
+import { HashRouter as Router } from 'react-router-dom'
+import App from './App'
 import 'antd/dist/reset.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './styles.css'
-import { AuthProvider } from './context/AuthContext.jsx'
 
-const container = document.getElementById('root')
-const root = createRoot(container)
-root.render(
-  <BrowserRouter>
-    <AuthProvider>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <Router>
       <App />
-    </AuthProvider>
-  </BrowserRouter>
+    </Router>
+  </React.StrictMode>
 )
