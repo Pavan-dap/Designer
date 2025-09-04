@@ -27,7 +27,7 @@ export default function Login() {
         token: data.token || 'session',
       }
       signIn(authPayload)
-      navigate('/kanban')
+      navigate('/dashboard')
     } catch (err) {
       message.error(err?.response?.data?.message || 'Login failed')
     }
