@@ -2,6 +2,12 @@
 .auth-page { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
 .auth-card { width: 350px; padding: 20px; }
 
+/* Layout */
+.app-shell { min-height: 100vh; }
+.app-logo { height: 48px; margin: 16px; color: #fff; font-weight: 600; display: flex; align-items: center; }
+.app-header { background: #fff; padding: 0 16px; }
+.app-content { margin: 16px; }
+
 /* Kanban */
 .kanban-column { min-height: 220px; }
 .kanban-card { background: #fff; border: 1px solid rgba(0,0,0,0.08); border-radius: 6px; padding: 10px; margin-bottom: 10px; }
