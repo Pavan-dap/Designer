@@ -77,7 +77,7 @@ export default function Users() {
       dataIndex: 'designation',
       key: 'designation',
       render: (designation) => {
-        const colors = { Manager: 'blue', Incharge: 'green', Executive: 'orange', Admin: 'red' }
+        const colors = { Designer: 'blue', Tailor: 'green', CEO: 'orange', Admin: 'red' }
         return <Tag color={colors[designation] || 'default'}>{designation}</Tag>
       },
     },
@@ -134,9 +134,9 @@ export default function Users() {
           </Form.Item>
           <Form.Item name="designation" label="Designation" rules={[{ required: true }]}>
             <Select>
-              <Select.Option value="Manager">Manager</Select.Option>
-              <Select.Option value="Incharge">Incharge</Select.Option>
-              <Select.Option value="Executive">Executive</Select.Option>
+              <Select.Option value="Designer">Designer</Select.Option>
+              <Select.Option value="Tailor">Tailor</Select.Option>
+              <Select.Option value="CEO">CEO</Select.Option>
               <Select.Option value="Admin">Admin</Select.Option>
             </Select>
           </Form.Item>
