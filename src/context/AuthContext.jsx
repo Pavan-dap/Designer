@@ -39,8 +39,11 @@ export function useAuth() {
   return ctx
 }
 
+import { Navigate, useLocation } from 'react-router-dom'
+
 export function ProtectedRoute({ children }) {
   const { user } = useAuth()
-  if (!user) return null
+  const location = useLocation()
+  if (!user) return <Navigate to="/login" replace state={{ from: location }} />
   return children
 }
