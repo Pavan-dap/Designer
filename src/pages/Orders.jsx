@@ -205,11 +205,11 @@ export default function Orders() {
                           rules={[{ required: true }]}
                         >
                           <Select
-                            options=[
+                            options={[
                               { label: "Male", value: "Male" },
                               { label: "Female", value: "Female" },
                               { label: "Other", value: "Other" },
-                            ]
+                            ]}
                           />
                         </Form.Item>
                       </Card>
@@ -586,7 +586,7 @@ export default function Orders() {
                 {/* Multiple Phones */}
                 <Form.List
                   name="Phone_No"
-                  rules=[
+                  rules={[
                     {
                       validator: async (_, value) => {
                         if (!value || value.length < 1) {
@@ -596,7 +596,7 @@ export default function Orders() {
                         }
                       },
                     },
-                  ]
+                  ]}
                 >
                   {(fields, { add, remove }) => {
                     return (
@@ -619,12 +619,12 @@ export default function Orders() {
                               <Form.Item
                                 {...restField}
                                 name={[name, "Phone_No"]}
-                                rules=[
+                                rules={[
                                   {
                                     required: true,
                                     message: "Phone number required",
                                   },
-                                ]
+                                ]}
                               >
                                 <Input placeholder="Phone No" />
                               </Form.Item>
