@@ -10,6 +10,7 @@ const items = [
   { key: '/dashboard', label: 'Dashboard' },
   { key: '/kanban', label: 'Kanban' },
   { key: '/orders', label: 'Orders' },
+  { key: '/customers', label: 'Customers' },
   { key: '/users', label: 'Users' },
   { key: '/reports', label: 'Reports' },
 ]
