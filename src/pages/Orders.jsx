@@ -16,6 +16,60 @@ const cuttingOptions = ["Princess Cut", "Add Cups", "Back Open", "Front Open"];
 // Measurement fields for a Male member's dress
 const maleDressFields = ["Pattern", "Full_Length", "Shoulder", "Chest", "Waist", "SLeev_Length", "SLeev_Loose", "Bottom_Length", "Ankle", "Piping_Colour", "Other_If_Any",];
 
+// Simple unique id generator (stable per session)
+function genId(prefix = "id") {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// Parser to accept decimals or rational numbers like "1/2" or "12 3/4"
+function inchesParser(input) {
+  if (input == null) return "";
+  const raw = String(input).trim();
+  if (!raw) return "";
+  // Allow digits, dot, slash, space, minus
+  const cleaned = raw.replace(/[^0-9.\/-\s]/g, "");
+
+  // If it's a plain decimal/integer, return as-is
+  if (/^-?\d*(?:\.\d+)?$/.test(cleaned)) return cleaned;
+
+  // Mixed or simple fraction: [int ]?num/den
+  const fracMatch = cleaned.match(/^\s*(-?\d+)?\s*(\d+)\s*\/\s*(\d+)\s*$/);
+  if (fracMatch) {
+    const [, intPartStr, numStr, denStr] = fracMatch;
+    const intPart = intPartStr ? parseInt(intPartStr, 10) : 0;
+    const num = parseFloat(numStr);
+    const den = parseFloat(denStr);
+    if (den === 0) return "";
+    const sign = intPart < 0 ? -1 : 1;
+    const value = intPart + sign * (num / den);
+    return String(value);
+  }
+
+  // Mixed with space like: 12 1/2 with optional sign on first number
+  const mixedMatch = cleaned.match(/^\s*(-?\d+)\s+(\d+)\s*\/\s*(\d+)\s*$/);
+  if (mixedMatch) {
+    const [, intStr, numStr, denStr] = mixedMatch;
+    const intPart = parseInt(intStr, 10);
+    const num = parseFloat(numStr);
+    const den = parseFloat(denStr);
+    if (den === 0) return "";
+    const sign = intPart < 0 ? -1 : 1;
+    const value = intPart + sign * (num / den);
+    return String(value);
+  }
+
+  // Fallback: strip everything except digits, dot, minus
+  return cleaned.replace(/[^0-9.-]/g, "");
+}
+
+const inchNumberProps = {
+  style: { width: "100%" },
+  min: 0,
+  step: 0.125, // 1/8 inch
+  precision: 3,
+  parser: inchesParser,
+};
+
 export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
@@ -108,7 +162,13 @@ export default function Orders() {
         <Form
           form={form}
           layout="vertical"
-          onFinish={(values) => setFamilyMembers(values.members || [])}
+          onFinish={(values) => {
+            const next = (values.members || []).map((m) => ({
+              ...m,
+              uid: m.uid || genId("mem"),
+            }));
+            setFamilyMembers(next);
+          }}
           initialValues={{ members: familyMembers }}
         >
           <Form.List name="members">
@@ -145,11 +205,11 @@ export default function Orders() {
                           rules={[{ required: true }]}
                         >
                           <Select
-                            options={[
+                            options=[
                               { label: "Male", value: "Male" },
                               { label: "Female", value: "Female" },
                               { label: "Other", value: "Other" },
-                            ]}
+                            ]
                           />
                         </Form.Item>
                       </Card>
@@ -196,13 +256,13 @@ export default function Orders() {
             onChange={(keys) => setActiveMemberPanels(keys)}
           >
             {familyMembers.map((member, index) => (
-              <Panel header={`${member.name} (${member.gender})`} key={index}>
+              <Panel header={`${member.name} (${member.gender})`} key={member.uid || index}>
                 <Form.List name={[index, "dresses"]} initialValue={[{}]}>
                   {(fields, { add: addDress, remove: removeDress }) => (
                     <>
                       {fields.map((dressField, dressIndex) => (
                         <Card
-                          key={dressIndex}
+                          key={dressField.key}
                           size="small"
                           title={`Dress ${dressIndex + 1}`}
                           extra={
@@ -225,7 +285,7 @@ export default function Orders() {
                         </Card>
                       ))}
                       <Divider />
-                      <Button type="dashed" onClick={() => addDress()} block>
+                      <Button type="dashed" onClick={() => addDress({ uid: genId("dress") })} block>
                         <PlusOutlined /> Add Dress
                       </Button>
                     </>
@@ -245,37 +305,37 @@ export default function Orders() {
         <Form.Item {...field} name={[field.name, "Pattern"]} label="Pattern"><Input /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Full_Length"]} label="Full Length"><Input /></Form.Item>
+        <Form.Item {...field} name={[field.name, "Full_Length"]} label="Full Length"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Blouse_Length"]} label="Blouse Length"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "Blouse_Length"]} label="Blouse Length"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Shoulder"]} label="Shoulder"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "Shoulder"]} label="Shoulder"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Chest"]} label="Chest"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "Chest"]} label="Chest"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Waist"]} label="Waist"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "Waist"]} label="Waist"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "ARM_Hole"]} label="Arm Hole"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "ARM_Hole"]} label="Arm Hole"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "SLeev_Length"]} label="Sleeve Length"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "SLeev_Length"]} label="Sleeve Length"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "SLeev_Loose"]} label="Sleeve Loose"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "SLeev_Loose"]} label="Sleeve Loose"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
         <Form.Item {...field} name={[field.name, "Cuts_From"]} label="Cuts From"><Input /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Bottom_Length"]} label="Bottom Length"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "Bottom_Length"]} label="Bottom Length"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item valuePropName="checked" label="Ankle" name="Ankle"><Checkbox>Ankle</Checkbox></Form.Item>
+        <Form.Item {...field} name={[field.name, "Ankle"]} label="Ankle" valuePropName="checked"><Checkbox>Ankle</Checkbox></Form.Item>
       </Col>
       <Col span={12}>
         <Form.Item {...field} name={[field.name, "Piping_Colour"]} label="Piping Colour"><Input /></Form.Item>
@@ -287,19 +347,19 @@ export default function Orders() {
         <Divider orientation="left">Neck</Divider>
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item label="Front Neck" name={["Neck", "Front"]}>
+            <Form.Item label="Front Neck">
               <Input.Group compact>
-                <Form.Item name={["Neck", "Front", "Normal"]} noStyle><InputNumber placeholder="Normal" /></Form.Item>
-                <Form.Item name={["Neck", "Front", "Broad"]} noStyle><InputNumber placeholder="Broad" /></Form.Item>
-                <Form.Item name={["Neck", "Front", "Boat"]} valuePropName="checked" noStyle><Checkbox>Boat</Checkbox></Form.Item>
+                <Form.Item name={[field.name, "Neck", "Front", "Normal"]} noStyle><InputNumber {...inchNumberProps} placeholder="Normal" /></Form.Item>
+                <Form.Item name={[field.name, "Neck", "Front", "Broad"]} noStyle><InputNumber {...inchNumberProps} placeholder="Broad" /></Form.Item>
+                <Form.Item name={[field.name, "Neck", "Front", "Boat"]} valuePropName="checked" noStyle><Checkbox>Boat</Checkbox></Form.Item>
               </Input.Group>
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="Back Neck" name={["Neck", "Back"]}>
+            <Form.Item label="Back Neck">
               <Input.Group compact>
-                <Form.Item name={["Neck", "Back", "Deep"]} noStyle><InputNumber placeholder="Deep" /></Form.Item>
-                <Form.Item name={["Neck", "Back", "Keyhole"]} valuePropName="checked" noStyle><Checkbox>Keyhole</Checkbox></Form.Item>
+                <Form.Item name={[field.name, "Neck", "Back", "Deep"]} noStyle><InputNumber {...inchNumberProps} placeholder="Deep" /></Form.Item>
+                <Form.Item name={[field.name, "Neck", "Back", "Keyhole"]} valuePropName="checked" noStyle><Checkbox>Keyhole</Checkbox></Form.Item>
               </Input.Group>
             </Form.Item>
           </Col>
@@ -318,25 +378,25 @@ export default function Orders() {
         <Form.Item {...field} name={[field.name, "Pattern"]} label="Pattern"><Input /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Full_Length"]} label="Full Length"><Input /></Form.Item>
+        <Form.Item {...field} name={[field.name, "Full_Length"]} label="Full Length"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Shoulder"]} label="Shoulder"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "Shoulder"]} label="Shoulder"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Chest"]} label="Chest"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "Chest"]} label="Chest"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Waist"]} label="Waist"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "Waist"]} label="Waist"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "SLeev_Length"]} label="Sleeve Length"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "SLeev_Length"]} label="Sleeve Length"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "SLeev_Loose"]} label="Sleeve Loose"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "SLeev_Loose"]} label="Sleeve Loose"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Bottom_Length"]} label="Bottom Length"><InputNumber style={{ width: "100%" }} /></Form.Item>
+        <Form.Item {...field} name={[field.name, "Bottom_Length"]} label="Bottom Length"><InputNumber {...inchNumberProps} /></Form.Item>
       </Col>
       <Col span={12}>
         <Form.Item {...field} name={[field.name, "Ankle"]} label="Ankle" valuePropName="checked"><Checkbox>Ankle</Checkbox></Form.Item>
@@ -361,13 +421,13 @@ export default function Orders() {
         <h3>Family Members</h3>
         {familyMembers.map((member, index) => (
           <Card
-            key={index}
+            key={member.uid || index}
             style={{ marginBottom: 16 }}
             title={`${member.name} (${member.gender})`}
           >
             {(memberDetails[index]?.dresses || []).map((dress, dIndex) => (
               <Card
-                key={dIndex}
+                key={dress?.uid || dIndex}
                 type="inner"
                 title={`Dress ${dIndex + 1}`}
                 style={{ marginBottom: 8 }}
@@ -383,12 +443,7 @@ export default function Orders() {
                           <br />
                           {Object.entries(value).map(([neckKey, neckValue]) => (
                             <span key={neckKey}>
-                              &nbsp;&nbsp;{neckKey}:{" "}
-                              {typeof neckValue === "boolean"
-                                ? neckValue
-                                  ? "Yes"
-                                  : "No"
-                                : neckValue || "N/A"}
+                              &nbsp;&nbsp;{neckKey}: {typeof neckValue === "boolean" ? (neckValue ? "Yes" : "No") : neckValue || "N/A"}
                               <br />
                             </span>
                           ))}
@@ -531,7 +586,7 @@ export default function Orders() {
                 {/* Multiple Phones */}
                 <Form.List
                   name="Phone_No"
-                  rules={[
+                  rules=[
                     {
                       validator: async (_, value) => {
                         if (!value || value.length < 1) {
@@ -541,7 +596,7 @@ export default function Orders() {
                         }
                       },
                     },
-                  ]}
+                  ]
                 >
                   {(fields, { add, remove }) => {
                     return (
@@ -564,12 +619,12 @@ export default function Orders() {
                               <Form.Item
                                 {...restField}
                                 name={[name, "Phone_No"]}
-                                rules={[
+                                rules=[
                                   {
                                     required: true,
                                     message: "Phone number required",
                                   },
-                                ]}
+                                ]
                               >
                                 <Input placeholder="Phone No" />
                               </Form.Item>
