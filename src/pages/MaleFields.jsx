@@ -24,7 +24,7 @@ export const maleFieldKeys = [
 ];
 
 const MaleFields = ({ field }) => (
-    <Row gutter={16}>
+    <Row gutter={[16, 16]}>
         {[
             ["Pattern", "Pattern", Input],
             ["Top_Length", "Top Length", InputNumber],
@@ -45,14 +45,13 @@ const MaleFields = ({ field }) => (
             ["Thigh", "Thigh", InputNumber],
             ["Kifta", "Kifta", InputNumber],
         ].map(([key, label, Comp]) => (
-            <Col span={8} key={key}>
+            <Col xs={24} sm={12} md={8} key={key}>
                 <Form.Item name={[field.name, key]} label={label}>
-                    <Comp style={{ width: 140 }} />
+                    <Comp style={{ width: "100%" }} />
                 </Form.Item>
             </Col>
         ))}
 
-        {/* Other Specification (JSON key-value free form) */}
         <Col span={24}>
             <Form.Item
                 name={[field.name, "Other_Specification"]}
