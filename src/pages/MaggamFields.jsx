@@ -38,7 +38,7 @@ const MaggamFields = ({ field }) => (
         ].map(([key, label, Comp]) => (
             <Col xs={24} sm={12} md={8} key={key}>
                 <Form.Item name={[field.name, key]} label={label}>
-                    <Comp style={{ width: "100%" }} />
+                    <Comp className="input-fluid" />
                 </Form.Item>
             </Col>
         ))}
