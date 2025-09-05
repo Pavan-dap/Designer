@@ -154,3 +154,6 @@
     margin-left: 0 !important;
   }
 }
+
+/* Utility: full-width form controls */
+.input-fluid { width: 100%; }
