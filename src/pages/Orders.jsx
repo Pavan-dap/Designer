@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Space, message, Card, Typography, Steps, Radio, Modal, Form, Input, Select, DatePicker, Row, Col, Collapse, Divider, Tag, Tabs, } from "antd";
+import { Table, Button, Space, message, Card, Typography, Steps, Radio, Modal, Form, Input, Select, DatePicker, Row, Col, Collapse, Divider, Tag, Tabs, Popconfirm } from "antd";
 import { CustomersAPI } from "../api/endpoints";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 
@@ -131,6 +131,39 @@ export default function Orders() {
   const [familyMembers, setFamilyMembers] = useState([]);
   const [memberDetails, setMemberDetails] = useState({});
   const [activeMemberPanels, setActiveMemberPanels] = useState([]);
+
+  function resetOrder() {
+    setIsNewOrder(false);
+    setCurrentStep(0);
+    setFamilyMembers([]);
+    setMemberDetails({});
+    setSelectedCustomer(null);
+  }
+
+  function logMemberArrays() {
+    try {
+      familyMembers.forEach((member, index) => {
+        const dresses = (memberDetails?.[index]?.dresses || []).filter(Boolean);
+        const arr = dresses.map((dress) => ({
+          Member_Id: member.uid || index,
+          Member_Name: member.name,
+          Gender: member.gender,
+          Measurement_Values: dress,
+        }));
+        // eslint-disable-next-line no-console
+        console.log(`Member ${index + 1}:`, arr);
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to log member arrays", e);
+    }
+  }
+
+  function submitOrder() {
+    logMemberArrays();
+    message.success("Order submitted successfully!");
+    resetOrder();
+  }
 
   const loadCustomers = async () => {
     try {
@@ -409,33 +442,36 @@ export default function Orders() {
 
           <div style={{ marginTop: 24 }}>{steps[currentStep].content}</div>
 
-          <div style={{ marginTop: 24 }}>
-            {currentStep > 0 ? (
-              <Button style={{ marginRight: 8 }} onClick={() => setCurrentStep((s) => s - 1)}>
-                Previous
-              </Button>
-            ) : (
-              <Button style={{ marginRight: 8 }} onClick={() => setIsNewOrder(false)}>Cancel</Button>
+          <div style={{ marginTop: 24, display: "flex", gap: 8 }}>
+            <Popconfirm
+              title="Cancel this order?"
+              description="Your progress will be lost."
+              okText="Yes, cancel"
+              cancelText="No"
+              onConfirm={resetOrder}
+            >
+              <Button danger>Cancel</Button>
+            </Popconfirm>
+
+            {currentStep > 0 && (
+              <Button onClick={() => setCurrentStep((s) => s - 1)}>Previous</Button>
             )}
+
             {currentStep < steps.length - 1 && (
               <Button type="primary" onClick={() => setCurrentStep((s) => s + 1)}>
                 Next
               </Button>
             )}
+
             {currentStep === steps.length - 1 && (
-              <Button
-                type="primary"
-                onClick={() => {
-                  message.success("Order submitted successfully!");
-                  setIsNewOrder(false);
-                  setCurrentStep(0);
-                  setFamilyMembers([]);
-                  setMemberDetails({});
-                  setSelectedCustomer(null);
-                }}
+              <Popconfirm
+                title="Submit this order?"
+                okText="Submit"
+                cancelText="Review Again"
+                onConfirm={submitOrder}
               >
-                Submit Order
-              </Button>
+                <Button type="primary">Submit Order</Button>
+              </Popconfirm>
             )}
           </div>
 
