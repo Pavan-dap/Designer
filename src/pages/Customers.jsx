@@ -42,19 +42,19 @@ export default function Customers() {
         DOB: values.DOB ? values.DOB.format("YYYY-MM-DD") : null,
         Phone_No: values.Phone_No.map((p, idx) => ({
           Phone_No: p.Phone_No,
-          IsPrimary: idx === values.Phone_No.findIndex((_, i) => i === values.primaryIndex)
+          IsPrimary: idx === primaryIndex   // directly compare with state
         }))
       };
-      await CustomersAPI.create(payload)
-      message.success('Customer added')
-      setAddOpen(false)
-      addForm.resetFields()
-      load()
+      await CustomersAPI.create(payload);
+      message.success("Customer added");
+      setAddOpen(false);
+      addForm.resetFields();
+      setPrimaryIndex(0);
+      load();
     } catch (e) {
-      // console.log('ewefe', e.response.data)
-      message.error(e.response.data.error || 'Failed to add customer')
+      message.error(e.response?.data?.error || "Failed to add customer");
     }
-  }
+  };
 
   const columns = [
     {

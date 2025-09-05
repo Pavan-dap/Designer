@@ -1,33 +1,127 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Table, Button, Space, Tag, message, Card, Typography, Steps, Radio, Modal, Form, Input, Select, DatePicker, Row, Col, Collapse, Checkbox, InputNumber, Divider, } from "antd";
+import React, { useEffect, useState } from "react";
+import { Table, Button, Space, message, Card, Typography, Steps, Radio, Modal, Form, Input, Select, DatePicker, Row, Col, Collapse, Divider, Tag, Tabs, } from "antd";
 import { CustomersAPI } from "../api/endpoints";
-import { PlusOutlined, MinusCircleOutlined, CopyOutlined, } from "@ant-design/icons";
-import dayjs from "dayjs";
+import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
+
+import MaleFields, { maleFieldKeys } from "./MaleFields";
+import FemaleFields, { femaleFieldKeys } from "./FemaleFields";
+import { maggamFieldKeys } from "./MaggamFields";
 
 const { Title } = Typography;
 const { Panel } = Collapse;
-const { Option } = Select;
-
-// Measurement fields for a Female member's dress
-const femaleDressFields = ["Pattern", "Full_Length", "Blouse_Length", "Shoulder", "Chest", "Waist", "ARM_Hole", "SLeev_Length", "SLeev_Loose", "Cuts_From", "Bottom_Length", "Ankle", "Piping_Colour", "Other_If_Any",];
-
-const cuttingOptions = ["Princess Cut", "Add Cups", "Back Open", "Front Open"];
-
-// Measurement fields for a Male member's dress
-const maleDressFields = ["Pattern", "Full_Length", "Shoulder", "Chest", "Waist", "SLeev_Length", "SLeev_Loose", "Bottom_Length", "Ankle", "Piping_Colour", "Other_If_Any",];
 
 // Simple unique id generator (stable per session)
 function genId(prefix = "id") {
   return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+// Stable, top-level component to avoid remount on each keystroke
+function MemberDetailsForm({
+  familyMembers,
+  initialValues,
+  onValuesChange,
+  activePanels,
+  onActivePanelsChange,
+}) {
+  const [form] = Form.useForm();
+
+  function handleCopy(memberIndex, targetIdx, sourceIdx, gender) {
+    if (sourceIdx === undefined || sourceIdx === null) return;
+    if (sourceIdx === targetIdx) return;
+
+    const dresses = form.getFieldValue([memberIndex, "dresses"]) || [];
+    const from = dresses?.[sourceIdx] || {};
+
+    // Select the right schema
+    const keys = gender === "Male" ? maleFieldKeys : femaleFieldKeys;
+
+    keys.forEach((k) => {
+      if (from[k] !== undefined) {
+        form.setFieldValue([memberIndex, "dresses", targetIdx, k], from[k]);
+      }
+    });
+
+    message.success("Copied measurements");
+  }
+
+  const activeKey = Array.isArray(activePanels) ? activePanels[0] : activePanels;
+
+  return (
+    <Form
+      form={form}
+      layout="vertical"
+      onValuesChange={(_, allValues) => onValuesChange?.(allValues)}
+      initialValues={initialValues}
+    >
+      <Card title="Member Measurements">
+        <Tabs
+          tabBarStyle={{ marginTop: -24, marginBottom: 16 }}
+          activeKey={activeKey}
+          onChange={(k) => onActivePanelsChange?.(k)}
+          items={familyMembers.map((member, index) => ({
+            key: member.uid || String(index),
+            label: `${member.name} (${member.gender})`,
+            children: (
+              <Form.List name={[index, "dresses"]} initialValue={[{ uid: genId("dress") }]}>
+                {(fields, { add, remove }) => (
+                  <>
+                    {fields.map((dressField, dIndex) => (
+                      <Card
+                        key={dressField.key}
+                        size="small"
+                        title={`Dress ${dIndex + 1}`}
+                        style={{ marginBottom: 8 }}
+                        extra={
+                          <Space size={8}>
+                            <Select
+                              size="small"
+                              placeholder="Copy from"
+                              style={{ width: 140 }}
+                              onChange={(src) => handleCopy(index, dressField.name, src, member.gender)}
+                              options={fields
+                                .filter((f) => f.name !== dressField.name)
+                                .map((f) => ({ label: `Dress ${Number(f.name) + 1}`, value: f.name }))}
+                            />
+                            <Button
+                              danger
+                              size="small"
+                              icon={<MinusCircleOutlined />}
+                              onClick={() => remove(dressField.name)}
+                            />
+                          </Space>
+                        }
+                      >
+                        {member.gender === "Male" ? (
+                          <MaleFields field={dressField} />
+                        ) : (
+                          <FemaleFields field={dressField} />
+                        )}
+                      </Card>
+                    ))}
+                    <Divider />
+                    <Button
+                      type="dashed"
+                      onClick={() => add({ uid: genId("dress") })}
+                      block
+                    >
+                      <PlusOutlined /> Add Dress
+                    </Button>
+                  </>
+                )}
+              </Form.List>
+            ),
+          }))}
+        />
+      </Card>
+    </Form>
+  );
+}
 
 export default function Orders() {
-  const [orders, setOrders] = useState([]);
+  const [orders] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isNewOrder, setIsNewOrder] = useState(false);
 
-  // New states for customer creation
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -38,7 +132,6 @@ export default function Orders() {
   const [memberDetails, setMemberDetails] = useState({});
   const [activeMemberPanels, setActiveMemberPanels] = useState([]);
 
-  // Load existing customers
   const loadCustomers = async () => {
     try {
       const result = await CustomersAPI.list();
@@ -52,8 +145,6 @@ export default function Orders() {
     loadCustomers();
   }, []);
 
-  /** ---------------- Customer Creation Logic ------------------ **/
-
   const createCustomer = async (values) => {
     try {
       const payload = {
@@ -65,21 +156,17 @@ export default function Orders() {
         })),
       };
       const newCustomer = await CustomersAPI.create(payload);
-      setCustomers((prevCustomers) => [...prevCustomers, newCustomer]);
+      setCustomers((prev) => [...prev, newCustomer]);
       setSelectedCustomer(newCustomer.id);
       setIsModalVisible(false);
       addForm.resetFields();
       message.success("Customer created successfully");
-      // Move to the next step immediately
-      setCurrentStep(currentStep + 1);
+      setCurrentStep((s) => s + 1);
     } catch (e) {
       message.error(e.response?.data?.error || "Failed to create customer");
     }
   };
 
-  /** ---------------- Steps ------------------ **/
-
-  // Step 1: Select Customer
   const CustomerSelectionStep = () => (
     <Card title="Select Customer">
       <Space>
@@ -87,25 +174,17 @@ export default function Orders() {
           style={{ width: 300 }}
           showSearch
           placeholder="Select an existing customer"
-          options={customers.map((c) => ({
-            label: c.Name,
-            value: c.id,
-          }))}
+          options={customers.map((c) => ({ label: c.Name, value: c.id }))}
           onChange={(value) => setSelectedCustomer(value)}
           value={selectedCustomer}
         />
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => setIsModalVisible(true)}
-        >
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
           New Customer
         </Button>
       </Space>
     </Card>
   );
 
-  // Step 2: Add Members
   const FamilyMembersStep = () => {
     const [form] = Form.useForm();
 
@@ -115,11 +194,9 @@ export default function Orders() {
           form={form}
           layout="vertical"
           onFinish={(values) => {
-            const next = (values.members || []).map((m) => ({
-              ...m,
-              uid: m.uid || genId("mem"),
-            }));
+            const next = (values.members || []).map((m) => ({ ...m, uid: m.uid || genId("mem") }));
             setFamilyMembers(next);
+            message.success("Members saved");
           }}
           initialValues={{ members: familyMembers }}
         >
@@ -142,25 +219,14 @@ export default function Orders() {
                           </Space>
                         }
                       >
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "name"]}
-                          label="Name"
-                          rules={[{ required: true }]}
-                        >
+                        <Form.Item name={[field.name, "name"]} label="Name" rules={[{ required: true }]}>
                           <Input />
                         </Form.Item>
-                        <Form.Item
-                          {...field}
-                          name={[field.name, "gender"]}
-                          label="Gender"
-                          rules={[{ required: true }]}
-                        >
+                        <Form.Item name={[field.name, "gender"]} label="Gender" rules={[{ required: true }]}>
                           <Select
                             options={[
                               { label: "Male", value: "Male" },
                               { label: "Female", value: "Female" },
-                              { label: "Other", value: "Other" },
                             ]}
                           />
                         </Form.Item>
@@ -185,251 +251,79 @@ export default function Orders() {
     );
   };
 
-  // Step 3: Member Measurement Details
-  const MemberDetailsStep = () => {
-    const [form] = Form.useForm(); // <-- form instance
-
-    // Update memberDetails whenever form changes
-    const onValuesChange = (_, allValues) => {
-      setMemberDetails(allValues);
-    };
-
-    return (
-      <Form
-        form={form}
-        layout="vertical"
-        onValuesChange={onValuesChange}
-        initialValues={memberDetails}
-      >
-        <Card title="Member Measurements">
-          <Collapse
-            accordion
-            activeKey={activeMemberPanels}
-            onChange={(keys) => setActiveMemberPanels(keys)}
-          >
-            {familyMembers.map((member, index) => (
-              <Panel header={`${member.name} (${member.gender})`} key={member.uid || index}>
-                <Form.List name={[index, "dresses"]} initialValue={[{}]}>
-                  {(fields, { add: addDress, remove: removeDress }) => (
-                    <>
-                      {fields.map((dressField, dressIndex) => (
-                        <Card
-                          key={dressField.key}
-                          size="small"
-                          title={`Dress ${dressIndex + 1}`}
-                          extra={
-                            <Space>
-                              <Button
-                                danger
-                                icon={<MinusCircleOutlined />}
-                                onClick={() => removeDress(dressField.name)}
-                              />
-                            </Space>
-                          }
-                        >
-                          {member.gender === "Female" ? (
-                            <FemaleDressForm field={dressField} />
-                          ) : member.gender === "Male" ? (
-                            <MaleDressForm field={dressField} />
-                          ) : (
-                            <p>No measurement fields for this gender.</p>
-                          )}
-                        </Card>
-                      ))}
-                      <Divider />
-                      <Button type="dashed" onClick={() => addDress({ uid: genId("dress") })} block>
-                        <PlusOutlined /> Add Dress
-                      </Button>
-                    </>
-                  )}
-                </Form.List>
-              </Panel>
-            ))}
-          </Collapse>
-        </Card>
-      </Form>
-    );
-  };
-
-  const FemaleDressForm = React.memo(({ field }) => (
-    <Row gutter={16}>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Pattern"]} label="Pattern"><Input /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Full_Length"]} label="Full Length"><Input /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Blouse_Length"]} label="Blouse Length"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Shoulder"]} label="Shoulder"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Chest"]} label="Chest"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Waist"]} label="Waist"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "ARM_Hole"]} label="Arm Hole"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "SLeev_Length"]} label="Sleeve Length"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "SLeev_Loose"]} label="Sleeve Loose"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Cuts_From"]} label="Cuts From"><Input /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Bottom_Length"]} label="Bottom Length"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item valuePropName="checked" label="Ankle" name="Ankle"><Checkbox>Ankle</Checkbox></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Piping_Colour"]} label="Piping Colour"><Input /></Form.Item>
-      </Col>
-      <Col span={24}>
-        <Form.Item {...field} name={[field.name, "Cutting"]} label="Cutting"><Checkbox.Group options={cuttingOptions} /></Form.Item>
-      </Col>
-      <Col span={24}>
-        <Divider orientation="left">Neck</Divider>
-        <Row gutter={16}>
-          <Col span={12}>
-            <Form.Item label="Front Neck" name={["Neck", "Front"]}>
-              <Input.Group compact>
-                <Form.Item name={[field.name, "Neck", "Front", "Normal"]} noStyle><InputNumber placeholder="Normal" /></Form.Item>
-                <Form.Item name={[field.name, "Neck", "Front", "Broad"]} noStyle><InputNumber placeholder="Broad" /></Form.Item>
-                <Form.Item name={[field.name, "Neck", "Front", "Boat"]} valuePropName="checked" noStyle><Checkbox>Boat</Checkbox></Form.Item>
-              </Input.Group>
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item label="Back Neck" name={["Neck", "Back"]}>
-              <Input.Group compact>
-                <Form.Item name={[field.name, "Neck", "Back", "Deep"]} noStyle><InputNumber placeholder="Deep" /></Form.Item>
-                <Form.Item name={[field.name, "Neck", "Back", "Keyhole"]} valuePropName="checked" noStyle><Checkbox>Keyhole</Checkbox></Form.Item>
-              </Input.Group>
-            </Form.Item>
-          </Col>
-        </Row>
-      </Col>
-      <Col span={24}>
-        <Form.Item {...field} name={[field.name, "Other_If_Any"]} label="Other If Any"><Input.TextArea /></Form.Item>
-      </Col>
-    </Row>
-  ));
-
-  // Create a separate component for the Male dress form fields
-  const MaleDressForm = React.memo(({ field }) => (
-    <Row gutter={16}>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Pattern"]} label="Pattern"><Input /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Full_Length"]} label="Full Length"><Input /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Shoulder"]} label="Shoulder"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Chest"]} label="Chest"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Waist"]} label="Waist"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "SLeev_Length"]} label="Sleeve Length"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "SLeev_Loose"]} label="Sleeve Loose"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Bottom_Length"]} label="Bottom Length"><InputNumber style={{ width: "100%" }} /></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Ankle"]} label="Ankle" valuePropName="checked"><Checkbox>Ankle</Checkbox></Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item {...field} name={[field.name, "Piping_Colour"]} label="Piping Colour"><Input /></Form.Item>
-      </Col>
-      <Col span={24}>
-        <Form.Item {...field} name={[field.name, "Other_If_Any"]} label="Other If Any"><Input.TextArea /></Form.Item>
-      </Col>
-    </Row>
-  ));
-
-  // Step 4: Review & Confirm
   const ReviewStep = () => {
     const customer = customers.find((c) => c.id === selectedCustomer);
-    return (
-      <Card title="Review Order">
-        <h3>Customer</h3>
-        <p>{customer ? `${customer.Name}` : "No customer selected"}</p>
 
-        <h3>Family Members</h3>
-        {familyMembers.map((member, index) => (
-          <Card
-            key={member.uid || index}
-            style={{ marginBottom: 16 }}
-            title={`${member.name} (${member.gender})`}
-          >
-            {(memberDetails[index]?.dresses || []).map((dress, dIndex) => (
-              <Card
-                key={dress?.uid || dIndex}
-                type="inner"
-                title={`Dress ${dIndex + 1}`}
-                style={{ marginBottom: 8 }}
+    function renderFields(dress, keys) {
+      return (
+        <Row gutter={[8, 8]}>
+          {keys.map((k) => {
+            const val = dress?.[k];
+            let display = "-";
+
+            if (val !== undefined && val !== null && val !== "") {
+              if (Array.isArray(val)) {
+                display = val.join(", ");
+              } else if (typeof val === "object") {
+                // For nested objects like Neck or Extra, show readable string
+                display = Object.entries(val)
+                  .map(([key, v]) => {
+                    if (typeof v === "object") {
+                      return `${key}: ${Object.entries(v).map(([k2, v2]) => `${k2}: ${v2}`).join(", ")}`;
+                    }
+                    return `${key}: ${v}`;
+                  })
+                  .join(" | ");
+              } else {
+                display = val;
+              }
+            }
+
+            return (
+              <Col key={k} xs={24} sm={12}>
+                <Space size={6} wrap>
+                  <span style={{ color: "rgba(0,0,0,0.45)" }}>{k}:</span>
+                  <Tag>{display}</Tag>
+                </Space>
+              </Col>
+            );
+          })}
+        </Row>
+      );
+    }
+
+    return (
+      <Card
+        title="Review Order"
+        extra={<Tag color="blue">{customer ? customer.Name : "No customer selected"}</Tag>}
+      >
+        <Collapse accordion>
+          {familyMembers.map((member, index) => {
+            const dresses = (memberDetails?.[index]?.dresses || []).filter(Boolean);
+            return (
+              <Panel
+                header={<Space><span>{member.name} ({member.gender})</span><Tag color="geekblue">{dresses.length} Dress(es)</Tag></Space>}
+                key={member.uid || index}
               >
-                <p>
-                  **Measurements:**
-                  <br />
-                  {Object.entries(dress).map(([key, value]) => {
-                    if (typeof value === "object" && value !== null) {
-                      return (
-                        <span key={key}>
-                          **{key}:**
-                          <br />
-                          {Object.entries(value).map(([neckKey, neckValue]) => (
-                            <span key={neckKey}>
-                              &nbsp;&nbsp;{neckKey}: {typeof neckValue === "boolean" ? (neckValue ? "Yes" : "No") : neckValue || "N/A"}
-                              <br />
-                            </span>
-                          ))}
-                        </span>
-                      );
-                    }
-                    if (Array.isArray(value)) {
-                      return (
-                        <span key={key}>
-                          **{key}:** {value.join(", ")}
-                          <br />
-                        </span>
-                      );
-                    }
-                    if (typeof value === "boolean") {
-                      return (
-                        <span key={key}>
-                          **{key}:** {value ? "Yes" : "No"}
-                          <br />
-                        </span>
-                      );
-                    }
-                    return (
-                      <span key={key}>
-                        **{key}:** {value || "N/A"}
-                        <br />
-                      </span>
-                    );
-                  })}
-                </p>
-              </Card>
-            ))}
-          </Card>
-        ))}
+                <Row gutter={[16, 16]}>
+                  {dresses.map((dress, dIndex) => (
+                    <Col key={dress?.uid || dIndex} xs={24} md={12}>
+                      <Card size="small" title={`Dress ${dIndex + 1}`}>
+                        {member.gender === "Male" && renderFields(dress, maleFieldKeys)}
+                        {member.gender === "Female" && (
+                          <>
+                            {renderFields(dress, femaleFieldKeys)}
+                            {dress?.Maggam_Needed && renderFields(dress, maggamFieldKeys)}
+                          </>
+                        )}
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              </Panel>
+            );
+          })}
+        </Collapse>
       </Card>
     );
   };
@@ -437,22 +331,28 @@ export default function Orders() {
   const steps = [
     { title: "Customer", content: <CustomerSelectionStep /> },
     { title: "Members", content: <FamilyMembersStep /> },
-    { title: "Details", content: <MemberDetailsStep /> },
+    {
+      title: "Details",
+      content: (
+        <MemberDetailsForm
+          familyMembers={familyMembers}
+          initialValues={memberDetails}
+          onValuesChange={(vals) => setMemberDetails(vals)}
+          activePanels={activeMemberPanels}
+          onActivePanelsChange={(keys) => setActiveMemberPanels(keys)}
+        />
+      ),
+    },
     { title: "Review", content: <ReviewStep /> },
   ];
 
-  /** ---------------- UI ------------------ **/
   return (
     <>
       {!isNewOrder ? (
         <Card
           title={<Title level={3}>Orders</Title>}
           extra={
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              onClick={() => setIsNewOrder(true)}
-            >
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsNewOrder(true)}>
               New Order
             </Button>
           }
@@ -465,7 +365,7 @@ export default function Orders() {
               { title: "Date", dataIndex: "date" },
               { title: "Status", dataIndex: "status" },
             ]}
-            dataSource={[]}
+            dataSource={orders}
             bordered
             size="small"
             pagination={false}
@@ -473,27 +373,18 @@ export default function Orders() {
         </Card>
       ) : (
         <>
-          <Steps
-            current={currentStep}
-            items={steps.map((s) => ({ title: s.title }))}
-          />
+          <Steps current={currentStep} items={steps.map((s) => ({ title: s.title }))} />
 
           <div style={{ marginTop: 24 }}>{steps[currentStep].content}</div>
 
           <div style={{ marginTop: 24 }}>
             {currentStep > 0 && (
-              <Button
-                style={{ marginRight: 8 }}
-                onClick={() => setCurrentStep(currentStep - 1)}
-              >
+              <Button style={{ marginRight: 8 }} onClick={() => setCurrentStep((s) => s - 1)}>
                 Previous
               </Button>
             )}
             {currentStep < steps.length - 1 && (
-              <Button
-                type="primary"
-                onClick={() => setCurrentStep(currentStep + 1)}
-              >
+              <Button type="primary" onClick={() => setCurrentStep((s) => s + 1)}>
                 Next
               </Button>
             )}
@@ -514,7 +405,6 @@ export default function Orders() {
             )}
           </div>
 
-          {/* Create New Customer Modal */}
           <Modal
             title="Create New Customer"
             open={isModalVisible}
@@ -527,78 +417,42 @@ export default function Orders() {
                 <Form.Item name="Name" label="Name" rules={[{ required: true }]}>
                   <Input />
                 </Form.Item>
-                <Form.Item
-                  name="DOB"
-                  label="Date of Birth"
-                  rules={[{ required: true }]}
-                >
+                <Form.Item name="DOB" label="Date of Birth" rules={[{ required: true }]}>
                   <DatePicker format="YYYY-MM-DD" style={{ width: "100%" }} />
                 </Form.Item>
 
-                {/* Multiple Phones */}
                 <Form.List
                   name="Phone_No"
                   rules={[
                     {
                       validator: async (_, value) => {
                         if (!value || value.length < 1) {
-                          return Promise.reject(
-                            new Error("At least one phone number is required")
-                          );
+                          return Promise.reject(new Error("At least one phone number is required"));
                         }
                       },
                     },
                   ]}
                 >
-                  {(fields, { add, remove }) => {
-                    return (
-                      <>
-                        <Radio.Group
-                          value={primaryIndex}
-                          onChange={(e) => setPrimaryIndex(e.target.value)}
-                          style={{ width: "100%" }}
-                        >
-                          {fields.map(({ key, name, ...restField }, idx) => (
-                            <Space
-                              key={key}
-                              align="baseline"
-                              style={{ display: "flex", marginBottom: 8 }}
-                            >
-                              {/* Primary Radio */}
-                              <Radio value={idx} />
-
-                              {/* Phone number input */}
-                              <Form.Item
-                                {...restField}
-                                name={[name, "Phone_No"]}
-                                rules={[
-                                  {
-                                    required: true,
-                                    message: "Phone number required",
-                                  },
-                                ]}
-                              >
-                                <Input placeholder="Phone No" />
-                              </Form.Item>
-
-                              <MinusCircleOutlined onClick={() => remove(name)} />
-                            </Space>
-                          ))}
-                        </Radio.Group>
-
-                        <Form.Item>
-                          <Button
-                            type="dashed"
-                            onClick={() => add()}
-                            block
-                            icon={<PlusOutlined />}
-                          >
-                            Add Phone
-                          </Button>
-                        </Form.Item>
-                      </>
-                    );
-                  }}
+                  {(fields, { add, remove }) => (
+                    <>
+                      <Radio.Group value={primaryIndex} onChange={(e) => setPrimaryIndex(e.target.value)} style={{ width: "100%" }}>
+                        {fields.map(({ key, name, ...restField }, idx) => (
+                          <Space key={key} align="baseline" style={{ display: "flex", marginBottom: 8 }}>
+                            <Radio value={idx} />
+                            <Form.Item {...restField} name={[name, "Phone_No"]} rules={[{ required: true, message: "Phone number required" }]}>
+                              <Input placeholder="Phone No" />
+                            </Form.Item>
+                            <MinusCircleOutlined onClick={() => remove(name)} />
+                          </Space>
+                        ))}
+                      </Radio.Group>
+                      <Form.Item>
+                        <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                          Add Phone
+                        </Button>
+                      </Form.Item>
+                    </>
+                  )}
                 </Form.List>
 
                 <Form.Item name="Address" label="Address">
@@ -608,7 +462,6 @@ export default function Orders() {
                   <Select placeholder="Select Gender">
                     <Select.Option value="Male">Male</Select.Option>
                     <Select.Option value="Female">Female</Select.Option>
-                    <Select.Option value="Other">Other</Select.Option>
                   </Select>
                 </Form.Item>
                 <Form.Item>
