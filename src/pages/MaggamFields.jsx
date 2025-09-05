@@ -15,7 +15,7 @@ export const maggamFieldKeys = [
     "Other_If_Any",
     "Cut",
     "Design_Type",
-    "Extra",
+    "Maggam_Extra",
     "Thread_Colours",
     "Beads_Colours",
     "Zari_Colours",
@@ -68,7 +68,7 @@ const MaggamFields = ({ field }) => (
         </Col>
 
         <Col span={24}>
-            <Form.Item name={[field.name, "Extra"]} label="Extra">
+            <Form.Item name={[field.name, "Maggam_Extra"]} label="Maggam Extra" initialValue={[]}>
                 <Checkbox.Group
                     options={[
                         { label: "NeckLine", value: "NeckLine" },
