@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Space, message, Card, Typography, Steps, Radio, Modal, Form, Input, Select, DatePicker, Row, Col, Collapse, Divider, Tag, Tabs, Popconfirm } from "antd";
-import { CustomersAPI } from "../api/endpoints";
+import { CustomersAPI, MeasurementsAPI } from "../api/endpoints";
 import { PlusOutlined, MinusCircleOutlined } from "@ant-design/icons";
 
 import MaleFields, { maleFieldKeys } from "./MaleFields";
@@ -94,7 +94,7 @@ function MemberDetailsForm({
                         {member.gender === "Male" ? (
                           <MaleFields field={dressField} />
                         ) : (
-                          <FemaleFields field={dressField} />
+                          <FemaleFields field={dressField} memberIndex={index} />
                         )}
                       </Card>
                     ))}
@@ -141,29 +141,46 @@ export default function Orders() {
     setCustomers([]);
   }
 
-  function logMemberArrays() {
+  async function submitOrder() {
     try {
+      const requests = [];
       familyMembers.forEach((member, index) => {
         const dresses = (memberDetails?.[index]?.dresses || []).filter(Boolean);
-        const arr = dresses.map((dress) => ({
-          Member_Id: member.uid || index,
-          Member_Name: member.name,
-          Gender: member.gender,
-          Measurement_Values: dress,
-        }));
-        // eslint-disable-next-line no-console
-        console.log(`Member ${index + 1}:`, arr);
+        dresses.forEach((dress, dIndex) => {
+          const payload = {
+            Customer_Id: selectedCustomer,
+            Member_Id: member.uid || index,
+            Member_Name: member.name,
+            Gender: member.gender,
+            Dress_Index: dIndex + 1,
+            ...dress,
+          };
+          if (member.gender === "Male") {
+            requests.push(MeasurementsAPI.createBoy(payload));
+          } else {
+            requests.push(MeasurementsAPI.createGirl(payload));
+          }
+        });
       });
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error("Failed to log member arrays", e);
-    }
-  }
 
-  function submitOrder() {
-    logMemberArrays();
-    message.success("Order submitted successfully!");
-    resetOrder();
+      if (requests.length === 0) {
+        message.warning("No measurements to submit");
+        return;
+      }
+
+      const results = await Promise.allSettled(requests);
+      const successCount = results.filter((r) => r.status === "fulfilled").length;
+      const failCount = results.length - successCount;
+
+      if (successCount) message.success(`${successCount} measurement(s) submitted`);
+      if (failCount) message.error(`${failCount} measurement(s) failed`);
+
+      if (failCount === 0) {
+        resetOrder();
+      }
+    } catch (e) {
+      message.error(e?.response?.data?.error || "Failed to submit order");
+    }
   }
 
   const loadCustomers = async () => {
