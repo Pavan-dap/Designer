@@ -155,9 +155,9 @@ export default function Orders() {
           IsPrimary: idx === primaryIndex,
         })),
       };
-      const newCustomer = await CustomersAPI.create(payload);
-      setCustomers((prev) => [...prev, newCustomer]);
-      setSelectedCustomer(newCustomer.id);
+      await CustomersAPI.create(payload);
+      const result = await CustomersAPI.list();
+      setCustomers(result);
       setIsModalVisible(false);
       addForm.resetFields();
       message.success("Customer created successfully");
@@ -169,18 +169,50 @@ export default function Orders() {
 
   const CustomerSelectionStep = () => (
     <Card title="Select Customer">
-      <Space>
+      <Space style={{ width: "100%" }} direction="vertical">
         <Select
-          style={{ width: 300 }}
+          style={{ width: "100%" }}
           showSearch
           placeholder="Select an existing customer"
-          options={customers.map((c) => ({ label: c.Name, value: c.id }))}
-          onChange={(value) => setSelectedCustomer(value)}
+          optionFilterProp="label"
           value={selectedCustomer}
+          onChange={(value) => setSelectedCustomer(value)}
+          options={customers.map((c) => ({
+            value: c.Customer_Id,
+            label: `${c.Name} - ${c.Customer_Id} (${c.Gender}) | ${c.Phone_No.find((p) => p.IsPrimary)?.Phone_No || ""} | ${c.Address}`,
+            title: (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <strong>
+                  {c.Name} - {c.Customer_Id}
+                </strong>
+                <span>
+                  {c.Gender}, DOB: {c.DOB}
+                </span>
+                <span>📞 {c.Phone_No.map((p) => p.Phone_No).join(", ")}</span>
+                <span>{c.Address}</span>
+              </div>
+            ),
+          }))}
+          optionRender={(option) => option.data.title}
         />
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
-          New Customer
-        </Button>
+
+        {/* Centered, colorful button */}
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 16 }}>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            block
+            style={{
+              maxWidth: 300,
+              background: "linear-gradient(90deg, #1677ff 0%, #52c41a 100%)",
+              border: "none",
+              fontWeight: 600,
+            }}
+            onClick={() => setIsModalVisible(true)}
+          >
+            New Customer
+          </Button>
+        </div>
       </Space>
     </Card>
   );
@@ -252,7 +284,7 @@ export default function Orders() {
   };
 
   const ReviewStep = () => {
-    const customer = customers.find((c) => c.id === selectedCustomer);
+    const customer = customers.find((c) => c.Customer_Id === selectedCustomer);
 
     function renderFields(dress, keys) {
       return (
@@ -378,10 +410,12 @@ export default function Orders() {
           <div style={{ marginTop: 24 }}>{steps[currentStep].content}</div>
 
           <div style={{ marginTop: 24 }}>
-            {currentStep > 0 && (
+            {currentStep > 0 ? (
               <Button style={{ marginRight: 8 }} onClick={() => setCurrentStep((s) => s - 1)}>
                 Previous
               </Button>
+            ) : (
+              <Button style={{ marginRight: 8 }} onClick={() => setIsNewOrder(false)}>Cancel</Button>
             )}
             {currentStep < steps.length - 1 && (
               <Button type="primary" onClick={() => setCurrentStep((s) => s + 1)}>
