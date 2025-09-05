@@ -138,6 +138,7 @@ export default function Orders() {
     setFamilyMembers([]);
     setMemberDetails({});
     setSelectedCustomer(null);
+    setCustomers([]);
   }
 
   function logMemberArrays() {
@@ -173,10 +174,6 @@ export default function Orders() {
       message.error("Failed to load customers");
     }
   };
-
-  useEffect(() => {
-    loadCustomers();
-  }, []);
 
   const createCustomer = async (values) => {
     try {
@@ -227,6 +224,7 @@ export default function Orders() {
             ),
           }))}
           optionRender={(option) => option.data.title}
+          notFoundContent={customers.length === 0 ? "No customers found. Please add a new customer." : "No matching customers"}
         />
 
         {/* Centered, colorful button */}
@@ -417,7 +415,7 @@ export default function Orders() {
         <Card
           title={<Title level={3}>Orders</Title>}
           extra={
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsNewOrder(true)}>
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => { setIsNewOrder(true); loadCustomers(); }}>
               New Order
             </Button>
           }
@@ -442,19 +440,20 @@ export default function Orders() {
 
           <div style={{ marginTop: 24 }}>{steps[currentStep].content}</div>
 
-          <div style={{ marginTop: 24, display: "flex", gap: 8 }}>
-            <Popconfirm
-              title="Cancel this order?"
-              description="Your progress will be lost."
-              okText="Yes, cancel"
-              cancelText="No"
-              onConfirm={resetOrder}
-            >
-              <Button danger>Cancel</Button>
-            </Popconfirm>
+          <div style={{ marginTop: 24, display: "flex", gap: 8, justifyContent: "space-between" }}>
 
-            {currentStep > 0 && (
+            {currentStep > 0 ? (
               <Button onClick={() => setCurrentStep((s) => s - 1)}>Previous</Button>
+            ) : (
+              <Popconfirm
+                title="Cancel this order?"
+                description="Your progress will be lost."
+                okText="Yes, cancel"
+                cancelText="No"
+                onConfirm={resetOrder}
+              >
+                <Button danger>Cancel</Button>
+              </Popconfirm>
             )}
 
             {currentStep < steps.length - 1 && (
