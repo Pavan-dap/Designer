@@ -94,7 +94,7 @@ function MemberDetailsForm({
                         {member.gender === "Male" ? (
                           <MaleFields field={dressField} />
                         ) : (
-                          <FemaleFields field={dressField} />
+                          <FemaleFields field={dressField} memberIndex={index} />
                         )}
                       </Card>
                     ))}
