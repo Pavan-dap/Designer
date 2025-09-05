@@ -85,7 +85,7 @@ const MaggamFields = ({ field }) => (
             <Form.Item name={[field.name, "Thread_Colours"]} label="Thread Colours" initialValue={[]}>
                 <Select
                     mode="tags"
-                    style={{ width: "100%" }}
+                    className="input-fluid"
                     placeholder="Add colours (name or #hex)"
                     tokenSeparators={[",", " "]}
                 />
@@ -96,7 +96,7 @@ const MaggamFields = ({ field }) => (
             <Form.Item name={[field.name, "Beads_Colours"]} label="Beads Colours" initialValue={[]}>
                 <Select
                     mode="tags"
-                    style={{ width: "100%" }}
+                    className="input-fluid"
                     placeholder="Add bead colours (name or #hex)"
                     tokenSeparators={[",", " "]}
                 />
@@ -107,7 +107,7 @@ const MaggamFields = ({ field }) => (
             <Form.Item name={[field.name, "Zari_Colours"]} label="Zari Colours" initialValue={[]}>
                 <Select
                     mode="tags"
-                    style={{ width: "100%" }}
+                    className="input-fluid"
                     placeholder="Add Zari colours (name or #hex)"
                     tokenSeparators={[",", " "]}
                 />
@@ -117,18 +117,18 @@ const MaggamFields = ({ field }) => (
         <Divider>Neck Details</Divider>
         <Col xs={24} md={12}>
             <Form.Item label="Front - Broad" name={[field.name, "Neck", "Front", "Broad"]}>
-                <InputNumber style={{ width: "100%" }} />
+                <InputNumber className="input-fluid" />
             </Form.Item>
             <Form.Item label="Front - Normal" name={[field.name, "Neck", "Front", "Normal"]}>
-                <InputNumber style={{ width: "100%" }} />
+                <InputNumber className="input-fluid" />
             </Form.Item>
         </Col>
         <Col xs={24} md={12}>
             <Form.Item label="Back - Deep" name={[field.name, "Neck", "Back", "Deep"]}>
-                <InputNumber style={{ width: "100%" }} />
+                <InputNumber className="input-fluid" />
             </Form.Item>
             <Form.Item label="Back - Keyhole" name={[field.name, "Neck", "Back", "Keyhole"]}>
-                <InputNumber style={{ width: "100%" }} />
+                <InputNumber className="input-fluid" />
             </Form.Item>
         </Col>
     </Row>
