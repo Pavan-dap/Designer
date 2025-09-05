@@ -31,6 +31,12 @@ export const CustomersAPI = {
 }
 
 export const MeasurementsAPI = {
-  createBoy: (payload) => api.post('/Boys_Measurement_Sheet_View/', payload).then((r) => r.data),
-  createGirl: (payload) => api.post('/Girls_Measurement_Sheet_View/', payload).then((r) => r.data),
+  createBoy: async (payload) => {
+    console.log('payload', payload);
+    // return api.post('/Boys_Measurement_Sheet_View/', payload).then((r) => r.data);
+  },
+  createGirl: async (payload) => {
+    console.log('payload', payload);
+    // return api.post('/Girls_Measurement_Sheet_View/', payload).then((r) => r.data);
+  },
 }

@@ -38,7 +38,7 @@ const MaggamFields = ({ field }) => (
         ].map(([key, label, Comp]) => (
             <Col xs={24} sm={12} md={8} key={key}>
                 <Form.Item name={[field.name, key]} label={label}>
-                    <Comp className="input-fluid" />
+                    <Comp />
                 </Form.Item>
             </Col>
         ))}
@@ -85,7 +85,6 @@ const MaggamFields = ({ field }) => (
             <Form.Item name={[field.name, "Thread_Colours"]} label="Thread Colours" initialValue={[]}>
                 <Select
                     mode="tags"
-                    className="input-fluid"
                     placeholder="Add colours (name or #hex)"
                     tokenSeparators={[",", " "]}
                 />
@@ -96,7 +95,6 @@ const MaggamFields = ({ field }) => (
             <Form.Item name={[field.name, "Beads_Colours"]} label="Beads Colours" initialValue={[]}>
                 <Select
                     mode="tags"
-                    className="input-fluid"
                     placeholder="Add bead colours (name or #hex)"
                     tokenSeparators={[",", " "]}
                 />
@@ -107,7 +105,6 @@ const MaggamFields = ({ field }) => (
             <Form.Item name={[field.name, "Zari_Colours"]} label="Zari Colours" initialValue={[]}>
                 <Select
                     mode="tags"
-                    className="input-fluid"
                     placeholder="Add Zari colours (name or #hex)"
                     tokenSeparators={[",", " "]}
                 />
@@ -117,18 +114,18 @@ const MaggamFields = ({ field }) => (
         <Divider>Neck Details</Divider>
         <Col xs={24} md={12}>
             <Form.Item label="Front - Broad" name={[field.name, "Neck", "Front", "Broad"]}>
-                <InputNumber className="input-fluid" />
+                <InputNumber />
             </Form.Item>
             <Form.Item label="Front - Normal" name={[field.name, "Neck", "Front", "Normal"]}>
-                <InputNumber className="input-fluid" />
+                <InputNumber />
             </Form.Item>
         </Col>
         <Col xs={24} md={12}>
             <Form.Item label="Back - Deep" name={[field.name, "Neck", "Back", "Deep"]}>
-                <InputNumber className="input-fluid" />
+                <InputNumber />
             </Form.Item>
             <Form.Item label="Back - Keyhole" name={[field.name, "Neck", "Back", "Keyhole"]}>
-                <InputNumber className="input-fluid" />
+                <InputNumber />
             </Form.Item>
         </Col>
     </Row>
