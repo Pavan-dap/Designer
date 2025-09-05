@@ -25,8 +25,8 @@ export const femaleFieldKeys = [
     "Maggam_Needed"
 ];
 
-const FemaleFields = ({ field }) => {
-    const maggamNeeded = Form.useWatch([field.name, "Maggam_Needed"]);
+const FemaleFields = ({ field, memberIndex }) => {
+    const maggamNeeded = Form.useWatch([memberIndex, "dresses", field.name, "Maggam_Needed"]);
 
     return (
         <Row gutter={[16, 16]}>
