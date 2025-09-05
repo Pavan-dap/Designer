@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Row, Col, Form, Input, InputNumber, Radio, Space, Divider } from "antd";
 import MaggamFields from "./MaggamFields";
 
@@ -26,10 +26,10 @@ export const femaleFieldKeys = [
 ];
 
 const FemaleFields = ({ field }) => {
-    const [maggamNeeded, setMaggamNeeded] = useState(false);
+    const maggamNeeded = Form.useWatch([field.name, "Maggam_Needed"]);
+
     return (
-        <Row gutter={16}>
-            {/* Core numeric/text fields */}
+        <Row gutter={[16, 16]}>
             {[
                 ["Pattern", "Pattern", Input],
                 ["Full_Length", "Full Length", InputNumber],
@@ -47,21 +47,19 @@ const FemaleFields = ({ field }) => {
                 ["Ankle", "Ankle", InputNumber],
                 ["Piping_Color", "Piping Color", Input],
             ].map(([key, label, Comp]) => (
-                <Col span={8} key={key}>
+                <Col xs={24} sm={12} md={8} key={key}>
                     <Form.Item name={[field.name, key]} label={label}>
-                        <Comp style={{ width: 140 }} />
+                        <Comp style={{ width: "100%" }} />
                     </Form.Item>
                 </Col>
             ))}
 
-            {/* Others if any (JSON as key-value pairs) */}
             <Col span={24}>
                 <Form.Item name={[field.name, "Others_If_Any"]} label="Others If Any">
                     <Input.TextArea rows={2} placeholder="JSON or notes" />
                 </Form.Item>
             </Col>
 
-            {/* Extra options with radios */}
             <Col span={24}>
                 <Form.Item label="Extra">
                     <Space direction="vertical">
@@ -93,11 +91,10 @@ const FemaleFields = ({ field }) => {
                 </Form.Item>
             </Col>
 
-            {/* Neck JSON (front/back subfields) */}
             <Col span={24}>
                 <Form.Item label="Neck">
-                    <Row gutter={12}>
-                        <Col span={12}>
+                    <Row gutter={[12, 12]}>
+                        <Col xs={24} md={12}>
                             <Form.Item label="Front - Broad" name={[field.name, "Neck", "Front", "Broad"]}>
                                 <Input />
                             </Form.Item>
@@ -108,7 +105,7 @@ const FemaleFields = ({ field }) => {
                                 <Input />
                             </Form.Item>
                         </Col>
-                        <Col span={12}>
+                        <Col xs={24} md={12}>
                             <Form.Item label="Back - Deep" name={[field.name, "Neck", "Back", "Deep"]}>
                                 <Input />
                             </Form.Item>
@@ -120,16 +117,15 @@ const FemaleFields = ({ field }) => {
                 </Form.Item>
             </Col>
 
-            {/* Other Details */}
             <Col span={24}>
                 <Form.Item name={[field.name, "Other_Details"]} label="Other Details">
                     <Input.TextArea rows={3} placeholder="Add notes or JSON details" />
                 </Form.Item>
             </Col>
 
-            <Col span={12}>
+            <Col xs={24} md={12}>
                 <Form.Item name={[field.name, "Maggam_Needed"]} label="Maggam Needed">
-                    <Radio.Group onChange={e => setMaggamNeeded(e.target.value)}>
+                    <Radio.Group>
                         <Radio value={true}>Yes</Radio>
                         <Radio value={false}>No</Radio>
                     </Radio.Group>
@@ -137,10 +133,10 @@ const FemaleFields = ({ field }) => {
             </Col>
 
             {maggamNeeded && (
-                <>
+                <Col span={24}>
                     <Divider orientation="left">Maggam Fields</Divider>
                     <MaggamFields field={field} />
-                </>
+                </Col>
             )}
         </Row>
     );
